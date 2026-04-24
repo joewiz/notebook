@@ -1,0 +1,30 @@
+{
+    "title": "EXPath ZIP Module",
+    "description": "Interactive examples for the EXPath ZIP Module — reading, creating, and updating ZIP archives from XQuery",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-reading-entries.ipynb",
+            "title": "Reading ZIP Entries"
+        },
+        {
+            "file": "02-inspecting-archives.ipynb",
+            "title": "Inspecting Archives"
+        },
+        {
+            "file": "03-creating-archives.ipynb",
+            "title": "Creating Archives"
+        },
+        {
+            "file": "04-updating-archives.ipynb",
+            "title": "Updating Archives"
+        },
+        {
+            "file": "05-practical-recipes.ipynb",
+            "title": "Practical Recipes"
+        }
+    ]
+}

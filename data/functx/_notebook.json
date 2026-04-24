@@ -1,0 +1,26 @@
+{
+    "title": "FunctX XQuery Function Library",
+    "description": "Interactive reference for the FunctX XQuery function library, with runnable examples",
+    "authors": [
+        "Priscilla Walmsley"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-strings.ipynb",
+            "title": "String Functions"
+        },
+        {
+            "file": "02-numbers-dates.ipynb",
+            "title": "Numbers and Dates"
+        },
+        {
+            "file": "03-sequences.ipynb",
+            "title": "Sequence Functions"
+        },
+        {
+            "file": "04-xml-nodes.ipynb",
+            "title": "XML Node Functions"
+        }
+    ]
+}

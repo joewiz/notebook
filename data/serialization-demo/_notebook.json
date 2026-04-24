@@ -1,0 +1,14 @@
+{
+    "title": "Serialization Options",
+    "description": "Demonstrates per-cell serialization control using fenced code block attributes",
+    "authors": [
+        "Sandbox"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-serialization-options.ipynb",
+            "title": "Serialization Options"
+        }
+    ]
+}

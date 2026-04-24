@@ -1,0 +1,22 @@
+{
+    "title": "Query Profiling",
+    "description": "Profile and debug XQuery performance with util:time, util:track, util:explain, util:profile, and util:index-report",
+    "authors": [
+        "Sandbox"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-timing.ipynb",
+            "title": "Timing and Memory"
+        },
+        {
+            "file": "02-explain.ipynb",
+            "title": "Query Plans"
+        },
+        {
+            "file": "03-profiling.ipynb",
+            "title": "Full Profiling"
+        }
+    ]
+}

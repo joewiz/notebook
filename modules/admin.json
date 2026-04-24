@@ -1,0 +1,111 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Notebook Admin API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        { "url": "/exist/apps/notebook", "description": "Relative to app root" }
+    ],
+    "security": [],
+    "paths": {
+        "/api/admin/config": {
+            "get": {
+                "summary": "Get app configuration",
+                "operationId": "admin:get-config",
+                "responses": { "200": { "description": "Config", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/admin/caches": {
+            "get": {
+                "summary": "List all notebook caches",
+                "operationId": "admin:list-caches",
+                "responses": { "200": { "description": "Cache list", "content": { "application/json": {} } } }
+            },
+            "delete": {
+                "summary": "Destroy all notebook caches",
+                "operationId": "admin:cache-clear-all",
+                "responses": { "200": { "description": "All caches destroyed", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/admin/caches/{name}": {
+            "get": {
+                "summary": "Get cache detail (keys and values)",
+                "operationId": "admin:cache-detail",
+                "parameters": [
+                    { "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": { "200": { "description": "Cache detail", "content": { "application/json": {} } } }
+            },
+            "post": {
+                "summary": "Remove a single entry from a cache",
+                "operationId": "admin:cache-remove-entry",
+                "parameters": [
+                    { "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "requestBody": {
+                    "content": { "application/json": { "schema": { "type": "object", "properties": { "key": { "type": "string" } } } } }
+                },
+                "responses": { "200": { "description": "Entry removed", "content": { "application/json": {} } } }
+            },
+            "put": {
+                "summary": "Clear all entries from a cache",
+                "operationId": "admin:cache-clear",
+                "parameters": [
+                    { "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": { "200": { "description": "Cache cleared", "content": { "application/json": {} } } }
+            },
+            "delete": {
+                "summary": "Destroy a cache",
+                "operationId": "admin:cache-destroy",
+                "parameters": [
+                    { "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": { "200": { "description": "Cache destroyed", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/admin/versions": {
+            "get": {
+                "summary": "List all version snapshots grouped by notebook",
+                "operationId": "admin:list-versions",
+                "responses": { "200": { "description": "Version list", "content": { "application/json": {} } } }
+            },
+            "delete": {
+                "summary": "Purge old version snapshots (keeps newest N per notebook)",
+                "operationId": "admin:delete-all-versions",
+                "parameters": [
+                    { "name": "keep", "in": "query", "schema": { "type": "integer", "default": 1 }, "description": "Number of newest snapshots to keep per notebook (0 = delete all)" }
+                ],
+                "responses": { "200": { "description": "Old versions purged", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/admin/versions/{filename}": {
+            "delete": {
+                "summary": "Delete a specific version snapshot",
+                "operationId": "admin:delete-version",
+                "parameters": [
+                    { "name": "filename", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": { "200": { "description": "Version deleted", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/admin/versions/notebook/{notebook}": {
+            "delete": {
+                "summary": "Delete all versions for a specific notebook",
+                "operationId": "admin:delete-versions-for",
+                "parameters": [
+                    { "name": "notebook", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": { "200": { "description": "Versions deleted", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/admin/export": {
+            "get": {
+                "summary": "Export all notebooks as JSON",
+                "operationId": "admin:export-all",
+                "responses": { "200": { "description": "All notebooks", "content": { "application/json": {} } } }
+            }
+        }
+    }
+}

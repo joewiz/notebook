@@ -1,0 +1,38 @@
+{
+    "title": "XQuery LSP Module",
+    "description": "Explore the eXist-db LSP module: compile-time diagnostics, symbol extraction, completions, hover, go-to-definition, and find-all-references — all from XQuery",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-diagnostics.ipynb",
+            "title": "Diagnostics"
+        },
+        {
+            "file": "02-symbols.ipynb",
+            "title": "Document Symbols"
+        },
+        {
+            "file": "03-completions.ipynb",
+            "title": "Completions"
+        },
+        {
+            "file": "04-hover.ipynb",
+            "title": "Hover Information"
+        },
+        {
+            "file": "05-definition.ipynb",
+            "title": "Go to Definition"
+        },
+        {
+            "file": "06-references.ipynb",
+            "title": "Find All References"
+        },
+        {
+            "file": "07-applications.ipynb",
+            "title": "Applications"
+        }
+    ]
+}

@@ -1,0 +1,89 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>[% block title %]eXist-db[% endblock %]</title>
+    [% for $path in $styles?* %]
+    [% if matches($path, "(?:^https?://|^/).*$") %]
+    <link rel="stylesheet" href="[[ $path ]]"/>
+    [% else %]
+    <link rel="stylesheet" href="[[ $context-path ]]/[[ $path ]]"/>
+    [% endif %]
+    [% endfor %]
+    [% block head %][% endblock %]
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="[[ request:get-context-path() ]]/apps/exist-site-shell" class="site-logo">
+                <img src="[[ $context-path ]]/[[ $site?logo ]]" alt="[[ $site?name ]]" height="32"/>
+            </a>
+
+            <ul class="site-menu">
+                [% for $app in nav:apps($nav?items, $context-path)?* %]
+                [% if $app?active %]
+                <li><a href="[[ $app?url ]]" class="active">[[ $app?title ]]</a></li>
+                [% else %]
+                [% if $app?external %]
+                <li><a href="[[ $app?url ]]" target="_blank" rel="noopener">[[ $app?title ]]</a></li>
+                [% else %]
+                <li><a href="[[ $app?url ]]">[[ $app?title ]]</a></li>
+                [% endif %]
+                [% endif %]
+                [% endfor %]
+            </ul>
+
+            <div class="site-search-wrapper">
+                <form class="site-search" action="[[ request:get-context-path() ]]/apps/exist-site-shell/search" method="get" id="site-search-form">
+                    <label for="site-search-input" class="visually-hidden">Search</label>
+                    <div class="search-input-group">
+                        <input type="search" id="site-search-input" name="q" placeholder="Search docs, functions, notebooks..." autocomplete="off" aria-label="Sitewide search" aria-owns="search-scope-popup"/>
+                        <button type="button" class="search-scope-btn" id="search-scope-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="search-scope-popup" aria-label="Search scope: All apps">
+                            <span id="search-scope-label">All</span>
+                            <span class="search-scope-arrow" aria-hidden="true">▾</span>
+                        </button>
+                    </div>
+                    <input type="hidden" name="app" id="search-app-input" value=""/>
+                </form>
+                <ul class="search-scope-popup" id="search-scope-popup" role="listbox" aria-label="Search scope" hidden="hidden">
+                    <li class="scope-opt" role="option" tabindex="-1" data-abbrev="" data-label="All">All apps</li>
+                    [% for $app in nav:apps($nav?items, $context-path)?* %]
+                    [% if $app?abbrev != '' %]
+                    [% if $app?active %]
+                    <li class="scope-opt" role="option" tabindex="-1" data-abbrev="[[ $app?abbrev ]]" data-label="[[ $app?title ]]" data-active="true">[[ $app?title ]]</li>
+                    [% else %]
+                    <li class="scope-opt" role="option" tabindex="-1" data-abbrev="[[ $app?abbrev ]]" data-label="[[ $app?title ]]">[[ $app?title ]]</li>
+                    [% endif %]
+                    [% endif %]
+                    [% endfor %]
+                </ul>
+            </div>
+
+            <div class="site-user">
+                [% if site-config:current-user() != 'guest' %]
+                    <span>[[ site-config:current-user() ]]</span>
+                    <a href="[[ $context-path ]]/logout?redirect=[[ encode-for-uri(request:get-uri()) ]]">Logout</a>
+                [% else %]
+                    <a href="[[ $context-path ]]/login">Login</a>
+                [% endif %]
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        [% block content %][% endblock %]
+    </main>
+
+    <footer class="site-footer">
+        <p>Copyright 2001-2026 The eXist-db Authors.
+           <a href="https://github.com/eXist-db/exist">Source</a> |
+           <a href="https://exist-db.org">exist-db.org</a>
+        </p>
+    </footer>
+    <script src="[[ request:get-context-path() ]]/apps/exist-site-shell/resources/js/search-scope.js"/>
+    <script src="[[ request:get-context-path() ]]/apps/exist-site-shell/resources/js/function-docs.js" type="module"/>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+    "title": "Joe Wicentowski's XQuery Articles",
+    "description": "Standalone XQuery articles and techniques",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "highlight-matches.ipynb",
+            "title": "\"XQuery's Missing Third Function: highlight-matches()\""
+        },
+        {
+            "file": "roman-numerals.ipynb",
+            "title": "\"Converting Roman Numerals with XQuery\""
+        },
+        {
+            "file": "wrangling-plain-text.ipynb",
+            "title": "\"Wrangling Plain Text with XQuery\""
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+<collection xmlns="http://exist-db.org/collection-config/1.0">
+    <index xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <lucene>
+            <analyzer class="org.apache.lucene.analysis.standard.StandardAnalyzer"/>
+            <text qname="notebook">
+                <!-- Facets for cross-site search aggregation -->
+                <facet dimension="site-app"     expression="'notebook'"/>
+                <facet dimension="site-section" expression="'notebooks'"/>
+
+                <!-- Fields for sitewide search -->
+                <field name="site-content"  expression="string-join((title, body), ' ')"/>
+                <field name="site-title"    expression="title"/>
+                <field name="site-app"      expression="'notebook'"/>
+                <field name="site-section"  expression="'notebooks'"/>
+                <field name="site-url"      expression="url"/>
+            </text>
+        </lucene>
+    </index>
+</collection>

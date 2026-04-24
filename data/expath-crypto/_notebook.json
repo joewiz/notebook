@@ -1,0 +1,34 @@
+{
+    "title": "EXPath Crypto Module",
+    "description": "Interactive examples for the EXPath Cryptographic Module — hashing, HMAC authentication, symmetric encryption, and XML digital signatures from XQuery",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-hashing.ipynb",
+            "title": "Cryptographic Hashing"
+        },
+        {
+            "file": "02-hmac.ipynb",
+            "title": "HMAC Authentication"
+        },
+        {
+            "file": "03-encryption.ipynb",
+            "title": "Symmetric Encryption"
+        },
+        {
+            "file": "04-xml-signatures.ipynb",
+            "title": "XML Digital Signatures"
+        },
+        {
+            "file": "05-practical-recipes.ipynb",
+            "title": "Practical Recipes"
+        },
+        {
+            "file": "06-specs-and-references.ipynb",
+            "title": "Specs and References"
+        }
+    ]
+}

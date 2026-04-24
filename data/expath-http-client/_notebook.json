@@ -1,0 +1,30 @@
+{
+    "title": "EXPath HTTP Client Module",
+    "description": "Interactive examples for the EXPath HTTP Client Module — making HTTP requests, consuming REST APIs, and processing JSON/XML responses from XQuery",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-basic-requests.ipynb",
+            "title": "Basic Requests"
+        },
+        {
+            "file": "02-response-handling.ipynb",
+            "title": "Response Handling"
+        },
+        {
+            "file": "03-sending-data.ipynb",
+            "title": "Sending Data"
+        },
+        {
+            "file": "04-authentication.ipynb",
+            "title": "Authentication"
+        },
+        {
+            "file": "05-practical-recipes.ipynb",
+            "title": "Practical Recipes"
+        }
+    ]
+}

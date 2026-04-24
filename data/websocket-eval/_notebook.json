@@ -1,0 +1,34 @@
+{
+    "title": "WebSocket Eval",
+    "description": "Explore eXist-db's /ws/eval endpoint for streaming XQuery evaluation, cancellation, progress reporting, and timing breakdown",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-basic-eval.ipynb",
+            "title": "Basic Eval"
+        },
+        {
+            "file": "02-streaming.ipynb",
+            "title": "Streaming Large Results"
+        },
+        {
+            "file": "03-cancellation.ipynb",
+            "title": "Cancellation"
+        },
+        {
+            "file": "04-timing.ipynb",
+            "title": "Timing Breakdown"
+        },
+        {
+            "file": "05-compile-check.ipynb",
+            "title": "Compile Check"
+        },
+        {
+            "file": "06-recipes.ipynb",
+            "title": "Practical Recipes"
+        }
+    ]
+}

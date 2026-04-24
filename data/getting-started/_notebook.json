@@ -1,0 +1,42 @@
+{
+    "title": "Getting Started with eXist-db",
+    "description": "Learn XQuery and eXist-db through interactive examples adapted from the eXist-db Demo App",
+    "authors": [
+        "eXist-db Contributors"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-hello-xquery.ipynb",
+            "title": "Hello XQuery"
+        },
+        {
+            "file": "02-analyzing-data.ipynb",
+            "title": "Analyzing Data"
+        },
+        {
+            "file": "03-functions.ipynb",
+            "title": "Functions and Recursion"
+        },
+        {
+            "file": "04-generating-html.ipynb",
+            "title": "Generating HTML"
+        },
+        {
+            "file": "05-full-text-search.ipynb",
+            "title": "Full-Text Search"
+        },
+        {
+            "file": "06-xquery-3-features.ipynb",
+            "title": "XQuery 3.0 Features"
+        },
+        {
+            "file": "07-higher-order-functions.ipynb",
+            "title": "Higher-Order Functions"
+        },
+        {
+            "file": "08-maps.ipynb",
+            "title": "Maps"
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "title": "JSON Nodes (JNodes)",
+    "description": "An introduction to XQuery 4.0 JSON nodes: navigating JSON with XPath axes, constructing JNode trees, and mixing XML and JSON in a single query.",
+    "authors": [
+        "eXist-db Contributors"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-why-jnodes.ipynb",
+            "title": "Why JSON Nodes?"
+        },
+        {
+            "file": "02-building-trees.ipynb",
+            "title": "Building JNode Trees"
+        },
+        {
+            "file": "03-navigating.ipynb",
+            "title": "Navigating with XPath"
+        },
+        {
+            "file": "04-whats-next.ipynb",
+            "title": "What's Coming Next"
+        }
+    ]
+}

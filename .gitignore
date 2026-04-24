@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+build/
+expath-pkg.xml
+resources/scripts/*.min.js
+resources/scripts/*.min.js.map
+resources/scripts/prettier-bundle.js
+.env

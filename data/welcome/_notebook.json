@@ -1,0 +1,22 @@
+{
+    "title": "Welcome to the Notebook",
+    "description": "An introduction to interactive XQuery notebooks: running cells, declaring language versions, controlling output format, and chaining cells into a data pipeline.",
+    "authors": [
+        "eXist-db Contributors"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-cells.ipynb",
+            "title": "Cells and Serialization"
+        },
+        {
+            "file": "02-chaining.ipynb",
+            "title": "Chaining Cells"
+        },
+        {
+            "file": "03-sharing.ipynb",
+            "title": "Sharing a Notebook"
+        }
+    ]
+}

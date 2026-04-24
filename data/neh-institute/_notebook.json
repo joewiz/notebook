@@ -1,0 +1,19 @@
+{
+    "title": "Working with TEI in XQuery",
+    "description": "XQuery techniques for querying and transforming TEI-encoded texts, from the Pittsburgh NEH Institute",
+    "authors": [
+        "David J. Birnbaum",
+        "Joseph C. Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-querying-tei.ipynb",
+            "title": "Querying TEI Documents"
+        },
+        {
+            "file": "02-transforming-tei.ipynb",
+            "title": "Transforming TEI to HTML"
+        }
+    ]
+}

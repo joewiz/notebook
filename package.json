@@ -1,0 +1,57 @@
+{
+	"name": "notebook2",
+	"version": "1.0.0",
+	"description": "A Jupyter-inspired interactive XQuery notebook for eXist-db",
+	"main": "resources/js/notebook.js",
+	"scripts": {
+		"build": "npm run bundle-prettier && node scripts/build.js prepare && node scripts/build.js",
+		"build:dev": "npm run bundle-prettier && node scripts/build.js prepare && node scripts/build.js --dev",
+		"bundle-prettier": "node tools/bundle-prettier.js",
+		"clean": "node scripts/build.js clean",
+		"test": "node --test test/*.test.js",
+		"cypress": "cypress run",
+		"cypress:open": "cypress open"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/eXist-db/notebook.git"
+	},
+	"keywords": [
+		"exist-db",
+		"xquery",
+		"notebook",
+		"jupyter"
+	],
+	"author": "Joe Wicentowski",
+	"license": "GPL-3.0",
+	"devDependencies": {
+		"chalk": "^4.1.2",
+		"command-line-args": "^6.0.1",
+		"cypress": "^15.11.0",
+		"esbuild": "^0.27.3",
+		"glob-stream": "^7.0.0",
+		"micro-fs": "^1.0.3"
+	},
+	"dependencies": {
+		"@codemirror/autocomplete": "^6.18.6",
+		"@codemirror/commands": "^6.8.1",
+		"@codemirror/lang-html": "^6.4.11",
+		"@codemirror/lang-json": "^6.0.2",
+		"@codemirror/lang-markdown": "^6.3.2",
+		"@codemirror/lang-xml": "^6.1.0",
+		"@codemirror/language": "^6.10.8",
+		"@codemirror/legacy-modes": "^6.5.1",
+		"@codemirror/lint": "^6.8.5",
+		"@codemirror/search": "^6.5.10",
+		"@codemirror/state": "^6.5.2",
+		"@codemirror/view": "^6.36.5",
+		"@codemirror/theme-one-dark": "^6.1.2",
+		"@lezer/highlight": "^1.2.1",
+		"@prettier/plugin-xml": "^3.4.2",
+		"prettier": "^3.8.1",
+		"prettier-plugin-xquery": "^1.5.0"
+	},
+	"overrides": {
+		"glob-stream": "$glob-stream"
+	}
+}

@@ -1,0 +1,19 @@
+{
+    "servers": {
+        "localhost": {
+            "server": "http://localhost:8080/exist",
+            "user": "admin",
+            "password": ""
+        }
+    },
+    "sync": {
+        "server": "localhost",
+        "root": "/db/apps/notebook",
+        "active": true,
+        "ignore": [
+            ".existdb.json",
+            ".git/**",
+            "node_modules/**"
+        ]
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "title": "XQuery Recipes",
+    "description": "Practical XQuery recipes adapted from the XQuery Wikibook",
+    "authors": [
+        "XQuery Wikibook Contributors"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-sequences.ipynb",
+            "title": "Working with Sequences"
+        },
+        {
+            "file": "02-regular-expressions.ipynb",
+            "title": "Regular Expressions"
+        },
+        {
+            "file": "03-working-with-data.ipynb",
+            "title": "Working with Data"
+        },
+        {
+            "file": "04-csv-parsing.ipynb",
+            "title": "Parsing CSV"
+        },
+        {
+            "file": "05-fizzbuzz.ipynb",
+            "title": "FizzBuzz and Other Puzzles"
+        }
+    ]
+}

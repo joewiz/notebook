@@ -1,0 +1,135 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "XQuery Evaluation API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/exist/apps/notebook",
+            "description": "Relative to app root"
+        }
+    ],
+    "security": [],
+    "paths": {
+        "/api/eval": {
+            "post": {
+                "summary": "Execute an XQuery expression with named cell chaining",
+                "operationId": "eval:run",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {
+                                        "type": "string",
+                                        "description": "XQuery expression to evaluate"
+                                    },
+                                    "session": {
+                                        "type": "string",
+                                        "description": "Session ID for result caching (generated per page load)"
+                                    },
+                                    "cellName": {
+                                        "type": "string",
+                                        "description": "Optional name for this cell's result (becomes $name in subsequent cells)"
+                                    },
+                                    "context": {
+                                        "type": "array",
+                                        "description": "Preceding named cells with cached or fallback sources",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "description": "Variable name for this cell's result"
+                                                },
+                                                "query": {
+                                                    "type": "string",
+                                                    "description": "Source code (used as fallback if not cached)"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "serialization": {
+                                        "description": "Serialization method or options map"
+                                    },
+                                    "timeout": {
+                                        "type": "integer",
+                                        "description": "Execution timeout in ms (default: 5000)"
+                                    }
+                                },
+                                "required": ["query"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Execution result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "result": { "type": "string" },
+                                        "count": { "type": "integer" },
+                                        "elapsed": { "type": "string" },
+                                        "type": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/lint": {
+            "post": {
+                "summary": "Compile-check XQuery code",
+                "operationId": "eval:lint",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "description": "XQuery code to check"
+                                    },
+                                    "cellNames": {
+                                        "type": "array",
+                                        "description": "Names of preceding cells (for external variable declarations)",
+                                        "items": { "type": "string" }
+                                    }
+                                },
+                                "required": ["code"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lint result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": { "type": "string", "enum": ["ok", "fail"] },
+                                        "message": { "type": "string" },
+                                        "line": { "type": "integer" },
+                                        "column": { "type": "integer" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,81 @@
+{
+    "$schema": "../../schema/jinks.json",
+    "type": "base",
+    "id": "http://exist-db.org/pkg/notebook",
+    "version": "1.0.0",
+    "label": "Notebook",
+    "description": "A Jupyter-inspired interactive XQuery notebook for eXist-db, with live code execution, cell chaining, and rich output.",
+    "order": 100,
+    "pkg": {
+        "abbrev": "notebook",
+        "version": "1.0.0",
+        "website": "https://exist-db.org",
+        "author": "Joe Wicentowski",
+        "user": {
+            "name": "guest",
+            "group": "guest",
+            "password": "guest"
+        },
+        "permissions": "rw-r--r--",
+        "dependencies": [
+            {
+                "package": "http://e-editiones.org/roaster",
+                "semver": "1"
+            },
+            {
+                "package": "http://tei-publisher.com/library/jinks-templates",
+                "semver": "1"
+            }
+        ]
+    },
+    "properties": {
+        "title": "Notebook",
+        "abbrev": "notebook",
+        "version": "1.0.0"
+    },
+    "templating": {
+        "modules": {}
+    },
+    "script": {
+        "webcomponents": "",
+        "extra-components": [],
+        "cdn": "",
+        "custom": []
+    },
+    "styles": [
+        "resources/css/notebook.css"
+    ],
+    "api": [
+        {
+            "spec": "notebooks.json",
+            "prefix": "nb",
+            "path": "notebooks.xqm",
+            "id": "http://exist-db.org/pkg/notebook/notebooks"
+        },
+        {
+            "spec": "eval.json",
+            "prefix": "eval",
+            "path": "eval.xqm",
+            "id": "http://exist-db.org/pkg/notebook/eval"
+        }
+    ],
+    "defaults": {
+        "data": "data",
+        "template": "page.html"
+    },
+    "features": {},
+    "menu": {
+        "items": [
+            {
+                "id": "Notebook",
+                "url": "notebook"
+            }
+        ],
+        "login": false,
+        "search": false
+    },
+    "ignore": [
+        "repo.xml"
+    ],
+    "skip": []
+}

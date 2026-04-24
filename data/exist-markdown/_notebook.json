@@ -1,0 +1,34 @@
+{
+    "title": "Markdown Module",
+    "description": "Interactive examples for the eXist-db Markdown Module — parsing CommonMark/GFM to XML, rendering HTML, round-tripping, and building custom output formats",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-parsing-basics.ipynb",
+            "title": "Parsing Basics"
+        },
+        {
+            "file": "02-html-rendering.ipynb",
+            "title": "HTML Rendering"
+        },
+        {
+            "file": "03-selective-rendering.ipynb",
+            "title": "Selective Rendering"
+        },
+        {
+            "file": "04-round-tripping.ipynb",
+            "title": "Round-Tripping"
+        },
+        {
+            "file": "05-parser-options.ipynb",
+            "title": "Parser Options"
+        },
+        {
+            "file": "06-custom-output.ipynb",
+            "title": "Custom Output Formats"
+        }
+    ]
+}

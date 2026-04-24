@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta xmlns="http://exist-db.org/xquery/repo">
+    <description>A Jupyter-inspired interactive XQuery notebook for eXist-db</description>
+    <author>Joe Wicentowski</author>
+    <website>https://github.com/eXist-db/notebook</website>
+    <status>alpha</status>
+    <license>GNU-GPLv3</license>
+    <copyright>true</copyright>
+    <type>application</type>
+    <target>notebook</target>
+    <prepare>pre-install.xq</prepare>
+    <finish>post-install.xq</finish>
+    <permissions xmlns:repo="http://exist-db.org/xquery/repo" password="notebook" user="notebook" group="notebook" mode="0775"/>
+    <changelog>
+        <change version="1.0.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Initial release: Jupyter-inspired notebook with XQuery cells, markdown editing, and rich output</li>
+            </ul>
+        </change>
+    </changelog>
+</meta>

@@ -1,0 +1,246 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Notebook CRUD API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/exist/apps/notebook",
+            "description": "Relative to app root"
+        }
+    ],
+    "security": [],
+    "paths": {
+        "/api/notebooks": {
+            "get": {
+                "summary": "List all notebooks",
+                "operationId": "nb:list",
+                "responses": {
+                    "200": {
+                        "description": "Array of notebook metadata",
+                        "content": { "application/json": {} }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new notebook",
+                "operationId": "nb:create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": { "type": "string" },
+                                    "filename": { "type": "string" }
+                                },
+                                "required": ["title"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Notebook created",
+                        "content": { "application/json": {} }
+                    }
+                }
+            }
+        },
+        "/api/notebooks/{path}": {
+            "get": {
+                "summary": "Get notebook content",
+                "operationId": "nb:get",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notebook JSON",
+                        "content": { "application/json": {} }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Save/update a notebook (creates version snapshot)",
+                "operationId": "nb:save",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": { "application/json": { "schema": { "type": "object" } } }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notebook saved",
+                        "content": { "application/json": {} }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a notebook",
+                "operationId": "nb:delete",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "204": { "description": "Notebook deleted" }
+                }
+            }
+        },
+        "/api/collections": {
+            "post": {
+                "summary": "Create a new collection",
+                "operationId": "nb:create-collection",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": { "type": "string" },
+                                    "folder": { "type": "string" },
+                                    "description": { "type": "string" },
+                                    "authors": { "type": "array", "items": { "type": "string" } },
+                                    "difficulty": { "type": "string" }
+                                },
+                                "required": ["title"]
+                            }
+                        }
+                    }
+                },
+                "responses": { "201": { "description": "Collection created", "content": { "application/json": {} } } }
+            }
+        },
+        "/api/collections/{name}": {
+            "get": {
+                "summary": "Get collection manifest",
+                "operationId": "nb:get-collection",
+                "parameters": [
+                    { "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "200": { "description": "Collection manifest", "content": { "application/json": {} } }
+                }
+            },
+            "put": {
+                "summary": "Update collection manifest",
+                "operationId": "nb:update-collection",
+                "parameters": [
+                    { "name": "name", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": { "application/json": { "schema": { "type": "object" } } }
+                },
+                "responses": {
+                    "200": { "description": "Collection updated", "content": { "application/json": {} } }
+                }
+            }
+        },
+        "/api/notebooks/{path}/rename": {
+            "post": {
+                "summary": "Rename a notebook",
+                "operationId": "nb:rename",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": { "name": { "type": "string" } },
+                                "required": ["name"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notebook renamed",
+                        "content": { "application/json": {} }
+                    }
+                }
+            }
+        },
+        "/api/notebooks/upload": {
+            "post": {
+                "summary": "Upload/import a notebook",
+                "operationId": "nb:upload",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "filename": { "type": "string" },
+                                    "content": { "type": "string" }
+                                },
+                                "required": ["filename", "content"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Notebook uploaded",
+                        "content": { "application/json": {} }
+                    }
+                }
+            }
+        },
+        "/api/notebooks/{path}/duplicate": {
+            "post": {
+                "summary": "Duplicate a notebook",
+                "operationId": "nb:duplicate",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Notebook duplicated",
+                        "content": { "application/json": {} }
+                    }
+                }
+            }
+        },
+        "/api/notebooks/{path}/versions": {
+            "get": {
+                "summary": "List version history for a notebook",
+                "operationId": "nb:versions",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of version metadata",
+                        "content": { "application/json": {} }
+                    }
+                }
+            }
+        },
+        "/api/notebooks/{path}/versions/{version}": {
+            "post": {
+                "summary": "Restore a specific version",
+                "operationId": "nb:restore",
+                "parameters": [
+                    { "name": "path", "in": "path", "required": true, "schema": { "type": "string" } },
+                    { "name": "version", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Version restored",
+                        "content": { "application/json": {} }
+                    }
+                }
+            }
+        }
+    }
+}

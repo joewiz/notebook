@@ -1,0 +1,47 @@
+{
+    "title": "XQuery for Humanists",
+    "description": "Interactive companion to the book XQuery for Humanists, with runnable code examples",
+    "authors": [
+        "Clifford B. Anderson",
+        "Joseph C. Wicentowski"
+    ],
+    "difficulty": "beginner",
+    "chapters": [
+        {
+            "file": "01-xpath-fundamentals.ipynb",
+            "title": "XPath Fundamentals"
+        },
+        {
+            "file": "02-xquery-basics.ipynb",
+            "title": "XQuery Basics"
+        },
+        {
+            "file": "03-sequences-and-functions.ipynb",
+            "title": "Sequences and Functions"
+        },
+        {
+            "file": "04-strings-maps-arrays.ipynb",
+            "title": "Strings, Maps, and Arrays"
+        },
+        {
+            "file": "05-functional-programming.ipynb",
+            "title": "Thinking Functionally"
+        },
+        {
+            "file": "06-error-handling.ipynb",
+            "title": "Handling Errors"
+        },
+        {
+            "file": "07-json-csv-xslt.ipynb",
+            "title": "JSON, CSV, and XSLT"
+        },
+        {
+            "file": "08-xquery-update.ipynb",
+            "title": "XQuery Update"
+        },
+        {
+            "file": "09-full-text-search.ipynb",
+            "title": "Full Text Search"
+        }
+    ]
+}

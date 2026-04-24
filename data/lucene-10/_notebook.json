@@ -1,0 +1,39 @@
+{
+    "title": "Lucene 10 and Vector Search",
+    "description": "Explore eXist-db's full-text search and the new vector search capabilities powered by Lucene 10",
+    "authors": [
+        "Joe Wicentowski",
+        "Duncan Paterson"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-full-text-basics.ipynb",
+            "title": "Full-Text Search Basics"
+        },
+        {
+            "file": "02-index-configuration.ipynb",
+            "title": "Index Configuration"
+        },
+        {
+            "file": "03-advanced-full-text.ipynb",
+            "title": "Advanced Full-Text Queries"
+        },
+        {
+            "file": "04-vector-search.ipynb",
+            "title": "Vector Search"
+        },
+        {
+            "file": "05-embedding-generation.ipynb",
+            "title": "Embedding Generation"
+        },
+        {
+            "file": "06-practical-recipes.ipynb",
+            "title": "Practical Recipes"
+        },
+        {
+            "file": "07-migration.ipynb",
+            "title": "Migration from Lucene 4"
+        }
+    ]
+}

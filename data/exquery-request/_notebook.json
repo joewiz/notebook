@@ -1,0 +1,30 @@
+{
+    "title": "EXQuery Request Module",
+    "description": "Interactive examples for the EXQuery Request Module — inspecting HTTP requests, reading parameters, headers, cookies, and attributes from XQuery",
+    "authors": [
+        "Joe Wicentowski"
+    ],
+    "difficulty": "intermediate",
+    "chapters": [
+        {
+            "file": "01-request-basics.ipynb",
+            "title": "Request Basics"
+        },
+        {
+            "file": "02-parameters.ipynb",
+            "title": "Parameters"
+        },
+        {
+            "file": "03-headers-and-cookies.ipynb",
+            "title": "Headers and Cookies"
+        },
+        {
+            "file": "04-attributes.ipynb",
+            "title": "Request Attributes"
+        },
+        {
+            "file": "05-practical-patterns.ipynb",
+            "title": "Practical Patterns"
+        }
+    ]
+}
