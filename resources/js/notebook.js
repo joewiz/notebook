@@ -2418,29 +2418,57 @@ class FileBrowser {
     }
 
     renderTable(content) {
-        const sorted = this._sortedNotebooks();
         const arrow = (key) => this.sortKey === key ? (this.sortAsc ? " &#9650;" : " &#9660;") : "";
 
-        let rows = sorted.map(nb => {
-            const checked = this.selected.has(nb.path) ? "checked" : "";
-            const modified = new Date(nb.modified).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
-            return `<tr data-path="${nb.path}">
-                <td><input type="checkbox" ${checked} data-select="${nb.path}"/></td>
-                <td><a href="${nb.slug}">${escapeHtml(nb.title)}</a></td>
-                <td>${nb.cellCount}</td>
-                <td><time>${modified}</time></td>
-            </tr>`;
-        }).join("");
+        // Merge notebooks and collections into a single sortable list
+        const allItems = [
+            ...this.notebooks.map(nb => ({
+                type: "notebook", path: nb.path, slug: nb.slug,
+                title: nb.title, count: nb.cellCount, countLabel: nb.cellCount,
+                modified: nb.modified, modifiedLabel: new Date(nb.modified).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
+            })),
+            ...this.collections.map(col => ({
+                type: "collection", path: col.path, slug: col.path,
+                title: col.title, count: col.chapterCount, countLabel: `${col.chapterCount} ch.`,
+                modified: "", modifiedLabel: col.difficulty || ""
+            }))
+        ];
 
-        // Add collections as rows
-        rows += this.collections.map(col => `
-            <tr class="fb-table-collection">
-                <td></td>
-                <td><a href="${col.path}">${escapeHtml(col.title)}</a> <span class="fb-table-badge">${col.chapterCount} chapters</span></td>
-                <td></td>
-                <td>${col.difficulty || ""}</td>
-            </tr>
-        `).join("");
+        // Sort the merged list
+        const key = this.sortKey;
+        const dir = this.sortAsc ? 1 : -1;
+        allItems.sort((a, b) => {
+            let va = key === "title" ? a.title.toLowerCase()
+                   : key === "cellCount" ? a.count
+                   : key === "modified" ? (a.modified ? new Date(a.modified) : new Date(0))
+                   : a.title.toLowerCase();
+            let vb = key === "title" ? b.title.toLowerCase()
+                   : key === "cellCount" ? b.count
+                   : key === "modified" ? (b.modified ? new Date(b.modified) : new Date(0))
+                   : b.title.toLowerCase();
+            if (va < vb) return -dir;
+            if (va > vb) return dir;
+            return 0;
+        });
+
+        const rows = allItems.map(item => {
+            if (item.type === "notebook") {
+                const checked = this.selected.has(item.path) ? "checked" : "";
+                return `<tr data-path="${item.path}">
+                    <td><input type="checkbox" ${checked} data-select="${item.path}"/></td>
+                    <td><a href="${item.slug}">${escapeHtml(item.title)}</a></td>
+                    <td>${item.countLabel}</td>
+                    <td><time>${item.modifiedLabel}</time></td>
+                </tr>`;
+            } else {
+                return `<tr class="fb-table-collection">
+                    <td></td>
+                    <td><a href="${item.slug}">${escapeHtml(item.title)}</a> <span class="fb-table-badge">${item.count} chapters</span></td>
+                    <td>${item.countLabel}</td>
+                    <td>${item.modifiedLabel}</td>
+                </tr>`;
+            }
+        }).join("");
 
         content.innerHTML = `
             <table class="fb-table">
