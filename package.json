@@ -1,6 +1,6 @@
 {
 	"name": "notebook2",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"description": "A Jupyter-inspired interactive XQuery notebook for eXist-db",
 	"main": "resources/js/notebook.js",
 	"scripts": {

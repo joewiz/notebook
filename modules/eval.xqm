@@ -38,11 +38,23 @@ import module namespace cache="http://exist-db.org/xquery/cache";
  :)
 declare function eval:run($request as map(*)) {
     let $body := $request?body
-    let $query := $body?query
+    let $raw-query := $body?query
     let $session := $body?session
-    let $cell-name := $body?cellName
     let $context := $body?context
     let $timeout := ($body?timeout, 5000)[1]
+
+    (: Parse xqdoc directives (@name, @data, @silent) from the query :)
+    let $directives := eval:parse-xqdoc-directives($raw-query)
+
+    (: Cell name: directive @name takes priority over request body :)
+    let $cell-name := ($directives?name, $body?cellName)[1]
+
+    (: For @data cells, wrap the content as executable XQuery :)
+    let $query :=
+        if ($directives?dataFormat) then
+            eval:wrap-data-cell($raw-query, $directives?dataFormat)
+        else
+            $raw-query
 
     (: Parse serialization options :)
     let $ser-opts := eval:parse-serialization($body?serialization)
@@ -106,6 +118,9 @@ declare function eval:run($request as map(*)) {
                     "elapsed": string($elapsed),
                     "type": ($ser-opts?method, "adaptive")[1]
                 },
+                if ($directives?silent eq true()) then
+                    map { "silent": true() }
+                else (),
                 if ($cache-misses > 0 and $session-has-history) then
                     map { "cacheMisses": $cache-misses, "cacheTotal": $cache-total }
                 else ()
@@ -135,6 +150,14 @@ declare function eval:lint($request as map(*)) {
         if (not($code) or $code = "") then
             map { "status": "ok" }
         else
+            (: For @data cells, lint the wrapped version instead of raw content :)
+            let $directives := eval:parse-xqdoc-directives($code)
+            let $code :=
+                if ($directives?dataFormat) then
+                    eval:wrap-data-cell($code, $directives?dataFormat)
+                else
+                    $code
+
             let $cell-names := $request?body?cellNames
 
             (: Inject external variable declarations for named preceding cells :)
@@ -178,6 +201,72 @@ declare function eval:lint($request as map(*)) {
                     }
 };
 
+
+(: ==================== Directive parsing ==================== :)
+
+(:~
+ : Parse xqdoc-style directives from XQuery cell source.
+ :
+ : Recognized directives:
+ :   @name <identifier>   — cell name (for caching)
+ :   @data xml|json|text  — treat content as data, not XQuery
+ :   @silent              — suppress output
+ :
+ : @param $code the cell source
+ : @return map with name, dataFormat, silent keys (all optional)
+ :)
+declare %private function eval:parse-xqdoc-directives($code as xs:string) as map(*) {
+    let $match := analyze-string($code, "^\s*\(:~([\s\S]*?):\)")
+    let $body := string($match//fn:group[@nr="1"])
+    return
+        if ($body = "") then
+            map {}
+        else
+            let $lines := tokenize($body, "\n")
+            return map:merge((
+                for $line in $lines
+                let $stripped := replace(replace($line, "^\s+", ""), "^[*:]\s?", "")
+                return (
+                    let $name-match := analyze-string($stripped, "^@name\s+([a-zA-Z_][a-zA-Z0-9_-]*)")
+                    return
+                        if ($name-match//fn:match) then
+                            map { "name": string($name-match//fn:group[@nr="1"]) }
+                        else (),
+                    let $data-match := analyze-string($stripped, "^@data\s+(xml|json|text)", "i")
+                    return
+                        if ($data-match//fn:match) then
+                            map { "dataFormat": lower-case(string($data-match//fn:group[@nr="1"])) }
+                        else (),
+                    if (matches($stripped, "^@silent\b")) then
+                        map { "silent": true() }
+                    else ()
+                )
+            ))
+};
+
+(:~
+ : Wrap data cell content as executable XQuery.
+ :
+ : Strips the xqdoc comment and wraps based on format:
+ :   - json: parse-json('...')
+ :   - text: string literal '...'
+ :   - xml:  passed through (XML literals are valid XQuery)
+ :
+ : @param $code full cell source including xqdoc comment
+ : @param $format "xml", "json", or "text"
+ : @return executable XQuery string
+ :)
+declare %private function eval:wrap-data-cell($code as xs:string, $format as xs:string) as xs:string {
+    let $content := replace($code, "^\s*\(:~[\s\S]*?:\)\s*", "")
+    return
+        switch ($format)
+        case "json" return
+            "parse-json('" || replace($content, "'", "''") || "')"
+        case "text" return
+            "'" || replace($content, "'", "''") || "'"
+        default (: xml :) return
+            $content
+};
 
 (: ==================== Private helpers ==================== :)
 

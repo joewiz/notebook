@@ -6,3 +6,7 @@ resources/scripts/*.min.js
 resources/scripts/*.min.js.map
 resources/scripts/prettier-bundle.js
 .env
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

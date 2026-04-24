@@ -22,6 +22,117 @@ import {
 } from "./cm-bundle.js";
 
 // ---------------------------------------------------------------------------
+// xqdoc directive helpers — parse and update @name, @data, @silent, @output
+// in xqdoc comment blocks at the top of cell source.
+//
+// These directives provide round-trip compatibility between the Notebook web
+// app and VS Code Jupyter kernel. The toolbar GUI reads from and writes to
+// the xqdoc block, so users see the same directives in both environments.
+// ---------------------------------------------------------------------------
+
+const XQDOC_RE = /^(\s*)\(:~([\s\S]*?):\)/;
+
+/**
+ * Parse xqdoc directives from cell source.
+ * @param {string} code - cell source
+ * @returns {{ name, dataFormat, silent, output }} all nullable
+ */
+function parseXqdocDirectives(code) {
+    const match = code.match(XQDOC_RE);
+    if (!match) return { name: null, dataFormat: null, silent: false, output: null };
+
+    const body = match[2];
+    let name = null, dataFormat = null, silent = false, output = null;
+
+    for (const line of body.split("\n")) {
+        const stripped = line.trim().replace(/^[*:]\s?/, "");
+        const nameM = stripped.match(/^@name\s+([a-zA-Z_][a-zA-Z0-9_-]*)/);
+        if (nameM) { name = nameM[1]; continue; }
+        const dataM = stripped.match(/^@data\s+(xml|json|text)\b/i);
+        if (dataM) { dataFormat = dataM[1].toLowerCase(); continue; }
+        if (/^@silent\b/.test(stripped)) { silent = true; continue; }
+        const outputM = stripped.match(/^@output\s+(.*)/);
+        if (outputM) {
+            output = {};
+            const pairRe = /([a-zA-Z][a-zA-Z0-9_-]*)=(\S+)/g;
+            let m;
+            while ((m = pairRe.exec(outputM[1])) !== null) {
+                output[m[1]] = m[2];
+            }
+        }
+    }
+    return { name, dataFormat, silent, output };
+}
+
+/**
+ * Extract prose lines (non-directive, non-empty) from an xqdoc body.
+ */
+function extractXqdocProse(body) {
+    const prose = [];
+    for (const line of body.split("\n")) {
+        const stripped = line.trim().replace(/^[*:]\s?/, "");
+        // Skip directive lines and blank lines
+        if (/^@(name|data|silent|output|author|version|param|return|see|since|deprecated)\b/.test(stripped)) continue;
+        if (stripped === "") continue;
+        prose.push(stripped);
+    }
+    return prose;
+}
+
+/**
+ * Build an xqdoc comment block from directives, preserving prose lines.
+ * Returns null if all directives and prose are empty.
+ */
+function buildXqdocBlock(directives, prose) {
+    const directiveLines = [];
+    if (directives.name) directiveLines.push(` : @name ${directives.name}`);
+    if (directives.dataFormat) directiveLines.push(` : @data ${directives.dataFormat}`);
+    if (directives.silent) directiveLines.push(` : @silent`);
+    if (directives.output && Object.keys(directives.output).length > 0) {
+        const pairs = Object.entries(directives.output).map(([k, v]) => `${k}=${v}`).join(" ");
+        directiveLines.push(` : @output ${pairs}`);
+    }
+
+    if (directiveLines.length === 0 && (!prose || prose.length === 0)) return null;
+
+    const lines = [];
+    if (prose && prose.length > 0) {
+        for (const p of prose) lines.push(` : ${p}`);
+        if (directiveLines.length > 0) lines.push(` :`);
+    }
+    lines.push(...directiveLines);
+
+    return "(:~\n" + lines.join("\n") + "\n :)";
+}
+
+/**
+ * Update or insert an xqdoc block at the top of cell source.
+ * Preserves prose lines from any existing block.
+ * @param {string} code - current cell source
+ * @param {object} directives - { name, dataFormat, silent, output }
+ * @returns {string} updated source
+ */
+function updateXqdocInSource(code, directives) {
+    const existing = code.match(XQDOC_RE);
+    const prose = existing ? extractXqdocProse(existing[2]) : [];
+    const newBlock = buildXqdocBlock(directives, prose);
+
+    if (existing) {
+        if (newBlock) {
+            return code.replace(XQDOC_RE, newBlock);
+        } else {
+            return code.replace(/^\s*\(:~[\s\S]*?:\)\s*\n?/, "");
+        }
+    } else {
+        if (newBlock) {
+            return newBlock + "\n" + code;
+        } else {
+            return code;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Markdown rendering (simple but functional)
 // ---------------------------------------------------------------------------
 
@@ -400,11 +511,11 @@ class NotebookEditor {
                 <option value="json">JSON</option>
                 <option value="text">Text</option>
                 <option value="html">HTML</option>
-                <option value="html-source">HTML (source)</option>
+                <option value="html-raw">HTML (raw)</option>
                 <option value="xhtml">XHTML</option>
-                <option value="xhtml-source">XHTML (source)</option>
+                <option value="xhtml-raw">XHTML (raw)</option>
                 <option value="csv">CSV</option>
-                <option value="csv-source">CSV (source)</option>
+                <option value="csv-raw">CSV (raw)</option>
             </select>
             <label class="nb-indent-label" title="Indent output">
                 <input type="checkbox" class="nb-indent-check"/> indent
@@ -532,43 +643,61 @@ class NotebookEditor {
     // --- Cell rendering ---
 
     _renderCell(cellData, index) {
-        // Determine internal type: "raw" + exist.kind === "data" → treat as data cell
-        const isData = cellData.cell_type === "raw" && cellData.metadata?.exist?.kind === "data";
-        const internalType = isData ? "data" : cellData.cell_type;
-        const dataLanguage = cellData.metadata?.exist?.dataLanguage || "xml";
+        // Parse xqdoc directives from source to detect @data cells
+        const cellSource = Array.isArray(cellData.source)
+            ? cellData.source.join("")
+            : (cellData.source || "");
+        const xqdoc = cellData.cell_type === "code"
+            ? parseXqdocDirectives(cellSource)
+            : { name: null, dataFormat: null, silent: false, output: null };
+
+        // A code cell with @data is treated as a data cell for UI purposes
+        const isDataFromXqdoc = cellData.cell_type === "code" && xqdoc.dataFormat != null;
+        // Legacy: raw + exist.kind === "data"
+        const isLegacyData = cellData.cell_type === "raw" && cellData.metadata?.exist?.kind === "data";
+        const isDataCell = isDataFromXqdoc || isLegacyData;
+
+        const internalType = isLegacyData ? "data" : cellData.cell_type;
+        const dataLanguage = isDataFromXqdoc
+            ? xqdoc.dataFormat
+            : (cellData.metadata?.exist?.dataLanguage || "xml");
 
         const cellEl = document.createElement("div");
-        cellEl.className = `nb-cell nb-cell-${internalType}`;
+        cellEl.className = `nb-cell nb-cell-${isDataCell ? "data" : internalType}`;
         cellEl.dataset.index = index;
+
+        // Resolve name: xqdoc @name > metadata
+        const cellName = xqdoc.name || cellData.metadata?.exist?.name || "";
 
         // Cell actions bar
         const actions = document.createElement("div");
         actions.className = "nb-cell-actions";
-        const typeBadge = internalType === "code" ? "xquery"
-            : internalType === "data" ? "data"
+        const typeBadge = isDataCell ? "data"
+            : internalType === "code" ? "xquery"
             : "markdown";
         actions.innerHTML = `
             <span class="nb-cell-type-badge">${typeBadge}</span>
-            ${internalType === "code" ? `
+            ${internalType === "code" && !isDataCell ? `
                 <input class="nb-cell-name" type="text"
                     placeholder="name"
                     title="Cell name (\u2014 result becomes $name in subsequent cells)"
-                    value="${cellData.metadata?.exist?.name || ""}"
+                    value="${cellName}"
                     spellcheck="false"/>
                 ${NotebookEditor.serializationControls()}
                 <button class="nb-btn-icon" data-action="run" title="Run cell (Cmd/Ctrl+Enter)">&#9654;</button>
             ` : ""}
-            ${internalType === "data" ? `
+            ${isDataCell ? `
                 <input class="nb-cell-name" type="text"
                     placeholder="name (required)"
                     title="Cell name \u2014 data becomes $name in code cells"
-                    value="${cellData.metadata?.exist?.name || ""}"
+                    value="${cellName}"
                     spellcheck="false"/>
                 <select class="nb-data-lang" title="Data format">
                     <option value="xml" ${dataLanguage === "xml" ? "selected" : ""}>XML</option>
                     <option value="json" ${dataLanguage === "json" ? "selected" : ""}>JSON</option>
                     <option value="text" ${dataLanguage === "text" ? "selected" : ""}>Text</option>
                 </select>
+                <button class="nb-btn-icon" data-action="run" title="Run cell (load data)">&#9654;</button>
             ` : ""}
             <button class="nb-btn-icon" data-action="move-up" title="Move up">&#9650;</button>
             <button class="nb-btn-icon" data-action="move-down" title="Move down">&#9660;</button>
@@ -579,17 +708,39 @@ class NotebookEditor {
             <button class="nb-btn-icon nb-btn-add" data-action="add-md-below" title="Add Markdown cell below">+MD</button>
         `;
 
-        // Set initial serialization from metadata
+        // Set initial serialization from xqdoc @output > metadata
         const serSelect = actions.querySelector(".nb-ser-select");
-        if (serSelect && cellData.metadata?.exist?.serialization?.method) {
-            serSelect.value = cellData.metadata.exist.serialization.method;
-        }
         const indentCheck = actions.querySelector(".nb-indent-check");
-        if (indentCheck && cellData.metadata?.exist?.serialization?.indent) {
-            indentCheck.checked = cellData.metadata.exist.serialization.indent === "yes";
+        const outputDirective = xqdoc.output;
+        if (serSelect) {
+            const method = outputDirective?.method
+                || cellData.metadata?.exist?.serialization?.method;
+            const mediaType = outputDirective?.["media-type"];
+            if (method) {
+                // Map method + media-type to dropdown value
+                // method=html + media-type=text/html → "html" (rendered)
+                // method=html (no media-type) → "html-raw"
+                if (mediaType === "text/html") {
+                    // Rendered variant: use method as-is (html, xhtml, csv)
+                    serSelect.value = method;
+                } else if (method === "html" || method === "xhtml" || method === "csv") {
+                    // Raw variant: method without media-type
+                    serSelect.value = method + "-raw";
+                } else {
+                    serSelect.value = method;
+                }
+            }
+        }
+        if (indentCheck) {
+            const indent = outputDirective?.indent
+                || cellData.metadata?.exist?.serialization?.indent;
+            if (indent) {
+                indentCheck.checked = indent === "yes";
+            }
         }
 
         // Wire up name input (code + data cells)
+        // Writes to both the xqdoc block in the source and cell metadata
         const nameInput = actions.querySelector(".nb-cell-name");
         if (nameInput) {
             nameInput.addEventListener("change", () => {
@@ -600,12 +751,16 @@ class NotebookEditor {
                     this.cells[idx].cellName = name;
                     if (!this.cells[idx].metadata.exist) this.cells[idx].metadata.exist = {};
                     this.cells[idx].metadata.exist.name = name;
+
+                    // Update xqdoc block in the editor source
+                    this._updateCellXqdoc(idx, { name: name || null });
+
                     this._markModified();
                 }
             });
         }
 
-        // Wire up data language selector
+        // Wire up data language selector — updates @data in xqdoc block
         const dataLangSelect = actions.querySelector(".nb-data-lang");
         if (dataLangSelect) {
             dataLangSelect.addEventListener("change", () => {
@@ -614,7 +769,26 @@ class NotebookEditor {
                     this.cells[idx].dataLanguage = dataLangSelect.value;
                     if (!this.cells[idx].metadata.exist) this.cells[idx].metadata.exist = {};
                     this.cells[idx].metadata.exist.dataLanguage = dataLangSelect.value;
+                    this._updateCellXqdoc(idx, { dataFormat: dataLangSelect.value });
                     this._markModified();
+                }
+            });
+        }
+
+        // Wire up serialization controls to update xqdoc @output
+        if (serSelect) {
+            serSelect.addEventListener("change", () => {
+                const idx = this._cellIndex(cellEl);
+                if (idx >= 0) {
+                    this._syncSerializationToXqdoc(idx, serSelect, indentCheck);
+                }
+            });
+        }
+        if (indentCheck) {
+            indentCheck.addEventListener("change", () => {
+                const idx = this._cellIndex(cellEl);
+                if (idx >= 0) {
+                    this._syncSerializationToXqdoc(idx, serSelect, indentCheck);
                 }
             });
         }
@@ -1174,22 +1348,29 @@ class NotebookEditor {
         let displayMethod = serSelect ? serSelect.value : "adaptive";
         const indent = indentCheck ? (indentCheck.checked ? "yes" : "no") : "no";
 
-        // Map display methods to actual serialization methods
-        // "*-source" variants send the real method but render as highlighted source
+        // Map display methods to serialization parameters.
+        // Rendered variants (html, csv) use media-type=text/html.
+        // Raw variants (html-raw, csv-raw) use method only — no media-type.
         let actualMethod = displayMethod;
-        let showAsSource = false;
-        if (displayMethod === "html-source") {
+        let mediaType = undefined;
+        let isRaw = false;
+        if (displayMethod === "html-raw") {
             actualMethod = "html";
-            showAsSource = true;
-        } else if (displayMethod === "xhtml-source") {
+            isRaw = true;
+        } else if (displayMethod === "xhtml-raw") {
             actualMethod = "xhtml";
-            showAsSource = true;
-        } else if (displayMethod === "csv-source") {
+            isRaw = true;
+        } else if (displayMethod === "csv-raw") {
             actualMethod = "csv";
-            showAsSource = true;
+            isRaw = true;
+        } else if (displayMethod === "html" || displayMethod === "xhtml") {
+            mediaType = "text/html";
+        } else if (displayMethod === "csv") {
+            mediaType = "text/html";
         }
 
         const serialization = { method: actualMethod, indent };
+        if (mediaType) serialization["media-type"] = mediaType;
 
         // Mark running
         cell.element.classList.add("running");
@@ -1226,9 +1407,12 @@ class NotebookEditor {
                     evalue: result.error,
                     traceback: result.line ? [`Line ${result.line}, Column ${result.column}`] : []
                 }];
+            } else if (result.silent) {
+                // @silent: cell executed and cached, but suppress output
+                cell.outputs = [];
             } else {
-                // Use displayMethod for rendering (e.g., "html-source" shows raw markup)
-                const renderType = showAsSource ? displayMethod : result.type;
+                // Use displayMethod for rendering (e.g., "html-raw" shows raw markup)
+                const renderType = isRaw ? displayMethod : result.type;
                 cell.outputs = [{
                     output_type: "execute_result",
                     data: { "text/plain": result.result },
@@ -1322,7 +1506,7 @@ class NotebookEditor {
                 if ((outputType === "html" || outputType === "xhtml") || data["text/html"]) {
                     area.classList.add("output-html");
                     area.innerHTML = data["text/html"] || text;
-                } else if (outputType === "html-source" || outputType === "xhtml-source") {
+                } else if (outputType === "html-raw" || outputType === "xhtml-raw") {
                     area.innerHTML = highlightOutput(text, "html");
                 } else if (outputType === "xml") {
                     area.innerHTML = highlightOutput(text, "xml");
@@ -1331,7 +1515,7 @@ class NotebookEditor {
                 } else if (outputType === "csv") {
                     area.classList.add("output-html");
                     area.innerHTML = csvToTable(text);
-                } else if (outputType === "csv-source") {
+                } else if (outputType === "csv-raw") {
                     area.textContent = text;
                 } else if (outputType === "adaptive") {
                     const trimmed = text.trimStart();
@@ -1399,24 +1583,31 @@ class NotebookEditor {
         if (index < 0) index = 0;
         if (index > this.cells.length) index = this.cells.length;
 
+        // "+D" creates a code cell with xqdoc data directives
+        const isDataInsert = type === "data";
+        const actualType = isDataInsert ? "code" : type;
+        const initialSource = isDataInsert
+            ? "(:~\n : @name untitled\n : @data xml\n : @silent\n :)\n"
+            : "";
+
         const cellData = {
-            cell_type: type === "data" ? "raw" : type,
-            metadata: type === "data" ? { exist: { kind: "data", dataLanguage: "xml" } } : {},
-            source: "",
+            cell_type: actualType,
+            metadata: {},
+            source: initialSource,
             execution_count: null,
             outputs: []
         };
 
         // Create the cell element and insert it
         const cellEl = document.createElement("div");
-        cellEl.className = `nb-cell nb-cell-${type}`;
+        cellEl.className = `nb-cell nb-cell-${actualType}`;
 
         const actions = document.createElement("div");
         actions.className = "nb-cell-actions";
-        const typeBadge = type === "code" ? "xquery" : type === "data" ? "data" : "markdown";
+        const typeBadge = isDataInsert ? "data" : actualType === "code" ? "xquery" : "markdown";
         actions.innerHTML = `
             <span class="nb-cell-type-badge">${typeBadge}</span>
-            ${type === "code" ? `
+            ${actualType === "code" && !isDataInsert ? `
                 <input class="nb-cell-name" type="text"
                     placeholder="name"
                     title="Cell name \u2014 result becomes $name in subsequent cells"
@@ -1424,16 +1615,18 @@ class NotebookEditor {
                 ${NotebookEditor.serializationControls()}
                 <button class="nb-btn-icon" data-action="run" title="Run cell">&#9654;</button>
             ` : ""}
-            ${type === "data" ? `
+            ${isDataInsert ? `
                 <input class="nb-cell-name" type="text"
                     placeholder="name (required)"
                     title="Cell name \u2014 data becomes $name in code cells"
+                    value="untitled"
                     spellcheck="false"/>
                 <select class="nb-data-lang" title="Data format">
                     <option value="xml" selected>XML</option>
                     <option value="json">JSON</option>
                     <option value="text">Text</option>
                 </select>
+                <button class="nb-btn-icon" data-action="run" title="Run cell (load data)">&#9654;</button>
             ` : ""}
             <button class="nb-btn-icon" data-action="move-up" title="Move up">&#9650;</button>
             <button class="nb-btn-icon" data-action="move-down" title="Move down">&#9660;</button>
@@ -1460,7 +1653,7 @@ class NotebookEditor {
             }
         });
 
-        // Wire up name input for new cells
+        // Wire up name input for new cells — writes to xqdoc block
         const nameInput = actions.querySelector(".nb-cell-name");
         if (nameInput) {
             nameInput.addEventListener("change", () => {
@@ -1471,12 +1664,13 @@ class NotebookEditor {
                     self.cells[idx].cellName = name;
                     if (!self.cells[idx].metadata.exist) self.cells[idx].metadata.exist = {};
                     self.cells[idx].metadata.exist.name = name;
+                    self._updateCellXqdoc(idx, { name: name || null });
                     self._markModified();
                 }
             });
         }
 
-        // Wire up data language selector for new data cells
+        // Wire up data language selector — updates @data in xqdoc block
         const dataLangSelect = actions.querySelector(".nb-data-lang");
         if (dataLangSelect) {
             dataLangSelect.addEventListener("change", () => {
@@ -1485,6 +1679,7 @@ class NotebookEditor {
                     self.cells[idx].dataLanguage = dataLangSelect.value;
                     if (!self.cells[idx].metadata.exist) self.cells[idx].metadata.exist = {};
                     self.cells[idx].metadata.exist.dataLanguage = dataLangSelect.value;
+                    self._updateCellXqdoc(idx, { dataFormat: dataLangSelect.value });
                     self._markModified();
                 }
             });
@@ -1494,25 +1689,25 @@ class NotebookEditor {
 
         const cellRecord = {
             element: cellEl,
-            type,
+            type: actualType,
             editor: null,
-            source: "",
+            source: initialSource,
             outputs: [],
             executionCount: null,
             metadata: cellData.metadata,
-            cellName: "",
-            dataLanguage: type === "data" ? "xml" : undefined
+            cellName: isDataInsert ? "untitled" : "",
+            dataLanguage: isDataInsert ? "xml" : undefined
         };
 
         cellEl.addEventListener("click", () => {
             self.selectCell(self._cellIndex(cellEl));
         });
 
-        if (type === "code") {
+        if (actualType === "code") {
             const inputDiv = document.createElement("div");
             inputDiv.className = "nb-cell-input";
             const extensions = this._buildCodeExtensions(cellRecord);
-            const state = EditorState.create({ doc: "", extensions });
+            const state = EditorState.create({ doc: initialSource, extensions });
             const view = new EditorView({ state, parent: inputDiv });
             cellRecord.editor = view;
             cellEl.appendChild(inputDiv);
@@ -1521,14 +1716,6 @@ class NotebookEditor {
             outputDiv.className = "nb-cell-output";
             cellEl.appendChild(outputDiv);
             this._setupCellHover(cellRecord);
-        } else if (type === "data") {
-            const inputDiv = document.createElement("div");
-            inputDiv.className = "nb-cell-input";
-            const extensions = this._buildDataExtensions(cellRecord);
-            const state = EditorState.create({ doc: "", extensions });
-            const view = new EditorView({ state, parent: inputDiv });
-            cellRecord.editor = view;
-            cellEl.appendChild(inputDiv);
         } else {
             const rendered = document.createElement("div");
             rendered.className = "nb-md-rendered";
@@ -1960,6 +2147,67 @@ class NotebookEditor {
         this.cells.forEach((cell, i) => {
             cell.element.dataset.index = i;
         });
+    }
+
+    /**
+     * Sync the serialization dropdown and indent checkbox to the xqdoc @output block.
+     */
+    _syncSerializationToXqdoc(idx, serSelect, indentCheck) {
+        const displayMethod = serSelect?.value || "adaptive";
+        const indent = indentCheck?.checked ? "yes" : null;
+
+        // Map dropdown value to @output parameters
+        let method = displayMethod;
+        let mediaType = null;
+        if (displayMethod === "html-raw") method = "html";
+        else if (displayMethod === "xhtml-raw") method = "xhtml";
+        else if (displayMethod === "csv-raw") method = "csv";
+        else if (displayMethod === "html" || displayMethod === "xhtml") mediaType = "text/html";
+        else if (displayMethod === "csv") mediaType = "text/html";
+
+        // Build @output object — only include non-default values
+        const output = {};
+        if (method && method !== "adaptive") output.method = method;
+        if (mediaType) output["media-type"] = mediaType;
+        if (indent) output.indent = indent;
+
+        this._updateCellXqdoc(idx, {
+            output: Object.keys(output).length > 0 ? output : null
+        });
+
+        // Also update metadata for backward compat
+        if (!this.cells[idx].metadata.exist) this.cells[idx].metadata.exist = {};
+        this.cells[idx].metadata.exist.serialization = { method, indent: indent || "no" };
+        this._markModified();
+    }
+
+    /**
+     * Update the xqdoc block in a cell's editor source.
+     * Merges the given directive changes with existing directives.
+     * @param {number} idx - cell index
+     * @param {object} changes - directive fields to update (name, dataFormat, silent, output)
+     */
+    _updateCellXqdoc(idx, changes) {
+        const cell = this.cells[idx];
+        if (!cell || !cell.editor) return;
+
+        const currentSource = cell.editor.state.doc.toString();
+        const current = parseXqdocDirectives(currentSource);
+
+        // Merge changes into current directives
+        const merged = {
+            name: "name" in changes ? changes.name : current.name,
+            dataFormat: "dataFormat" in changes ? changes.dataFormat : current.dataFormat,
+            silent: "silent" in changes ? changes.silent : current.silent,
+            output: "output" in changes ? changes.output : current.output,
+        };
+
+        const newSource = updateXqdocInSource(currentSource, merged);
+        if (newSource !== currentSource) {
+            cell.editor.dispatch({
+                changes: { from: 0, to: currentSource.length, insert: newSource }
+            });
+        }
     }
 
     _markModified() {
