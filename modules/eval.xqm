@@ -237,7 +237,7 @@ declare %private function eval:parse-xqdoc-directives($code as xs:string) as map
                         if ($data-match//fn:match) then
                             map { "dataFormat": lower-case(string($data-match//fn:group[@nr="1"])) }
                         else (),
-                    if (matches($stripped, "^@silent\b")) then
+                    if (matches($stripped, "^@silent(\s|$)")) then
                         map { "silent": true() }
                     else ()
                 )
