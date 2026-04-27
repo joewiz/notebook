@@ -90,4 +90,38 @@ let $_ :=
 (: Reindex the data-index collection :)
 let $_ := xmldb:reindex($config:APP_ROOT || "/data-index")
 
+(: Deploy Lucene + ngram index for Shakespeare sample data :)
+let $shakespeare-data := $config:DATA_ROOT || "/getting-started/data/shakespeare"
+let $_ :=
+    if (xmldb:collection-available($shakespeare-data)) then
+        let $shakespeare-conf-col := "/db/system/config" || $shakespeare-data
+        let $_ :=
+            fold-left(
+                tokenize(substring-after($shakespeare-conf-col, "/db/system/config/"), "/"),
+                "/db/system/config",
+                function($parent, $child) {
+                    let $full := $parent || "/" || $child
+                    return (
+                        if (not(xmldb:collection-available($full))) then
+                            xmldb:create-collection($parent, $child)
+                        else (),
+                        $full
+                    )[last()]
+                }
+            )
+        let $xconf :=
+            <collection xmlns="http://exist-db.org/collection-config/1.0">
+                <index xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <lucene>
+                        <text qname="SPEECH"/>
+                        <text qname="LINE"/>
+                        <text qname="SPEAKER"/>
+                    </lucene>
+                    <ngram qname="SPEAKER"/>
+                </index>
+            </collection>
+        let $_ := xmldb:store($shakespeare-conf-col, "collection.xconf", $xconf)
+        return xmldb:reindex($shakespeare-data)
+    else ()
+
 return ()
