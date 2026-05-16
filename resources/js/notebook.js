@@ -1148,11 +1148,11 @@ class NotebookEditor {
         const prefix = word ? word.text : "";
         const from = word ? word.from : context.pos;
 
-        // Fetch completions from eXist LSP endpoint (cached per session)
+        // Fetch completions from eXist langservice endpoint (cached per session)
         if (!this._completionCache) {
             try {
-                const lspBase = this.apiBase.replace("/apps/notebook/api", "/apps/exist-api/api");
-                const resp = await fetch(`${lspBase}/lsp/completions`, {
+                const langBase = this.apiBase.replace("/apps/notebook/api", "/apps/existdb-openapi/api");
+                const resp = await fetch(`${langBase}/langservice/completions`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -2399,10 +2399,10 @@ class NotebookEditor {
         try {
             let shown = false;
 
-            // Try LSP hover first (works when expression compiles)
+            // Try langservice hover first (works when expression compiles)
             try {
-                const lspBase = this.apiBase.replace("/apps/notebook/api", "/apps/exist-api/api");
-                const resp = await fetch(`${lspBase}/lsp/hover`, {
+                const langBase = this.apiBase.replace("/apps/notebook/api", "/apps/existdb-openapi/api");
+                const resp = await fetch(`${langBase}/langservice/hover`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
